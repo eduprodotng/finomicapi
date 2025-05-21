@@ -32,7 +32,6 @@ router.post("/resend/code", resendEmailVerirficationCode);
 router.post("/forgot/password", forgotPassword);
 router.post("/reset/forgot/password", resetPassword);
 
-// Redirect to Google for authentication
 router.get(
   "/google",
   passport.authenticate("google", {
