@@ -10,47 +10,52 @@ const { getClientIp } = require("../middlewares/ipgetter");
 // handles user registration
 const registerUser = async (req, res) => {
   try {
-    const { phone, email, firstname, lastname, password, photourl } = req.body;
+    let { phone, email, fullname, password, photourl } = req.body;
 
-    // Check if user already exists by phone or email
-    const normalizedEmail = email.trim().toLowerCase();
-    const normalizedPhone = phone.trim();
+    // Convert phone to string safely (in case it comes as number or something else)
+    phone = (phone || "").toString().trim();
+    email = (email || "").toString().trim().toLowerCase();
+    password = (password || "").toString();
 
+    // Basic validation
+    if (!email || !phone || !fullname || !password) {
+      return res.status(400).json({
+        status: "error",
+        message:
+          "All required fields (email, phone, fullname, password) must be provided and password must be a valid string.",
+        data: null,
+      });
+    }
+
+    // Check if user already exists by email or phone
     const check = await User.findOne({
-      $or: [{ email: normalizedEmail }, { phone: normalizedPhone }],
+      $or: [{ email: email }, { phone: phone }],
     });
 
-    if (!check) {
-      const hashedPassword = await bcrypt.hash(password, 10);
-
-      const newUser = new User({
-        phone,
-        email,
-        firstname,
-        lastname,
-        password: hashedPassword,
-        photourl: photourl || null,
-        is_email_verified: false,
-      });
-
-      const user = await newUser.save();
-
-      res.status(201).json({
-        status: "success",
-        message: "User registered successfully.",
-        data: user,
-      });
-
-      // Optional: send welcome email here
-    } else {
-      res.status(400).json({
+    if (check) {
+      return res.status(400).json({
         status: "error",
         message: "User with same email or phone number already exists.",
         data: null,
       });
     }
+
+    // Create the user with normalized and validated data
+    const user = await User.createUser({
+      phone,
+      email,
+      fullname,
+      password: password.trim(),
+      photourl,
+    });
+
+    return res.status(201).json({
+      status: "success",
+      message: "User registered successfully.",
+      data: user,
+    });
   } catch (error) {
-    console.error(error);
+    console.error("Error in registerUser:", error);
     res.status(500).json({
       status: "error",
       message: "Registration failed.",

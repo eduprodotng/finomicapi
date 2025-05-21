@@ -505,9 +505,7 @@ const bcrypt = require("bcrypt");
 
 const userSchema = new mongoose.Schema(
   {
-    firstname: { type: String, required: true },
-    lastname: { type: String, required: true },
-    fullname: String,
+    fulname: { type: String },
     email: {
       type: String,
       required: true,
@@ -581,17 +579,36 @@ userSchema.statics.storeRefreshToken = async function (userId, token) {
 //   return await newUser.save();
 // };
 
-userSchema.statics.createUser = async function (data) {
-  const { phone, email, firstname, lastname, password, photourl } = data;
+// userSchema.statics.createUser = async function (data) {
+//   const { phone, email, fullname, password, photourl } = data;
 
-  const hashedPassword = await bcrypt.hash(password, 10);
+//   const hashedPassword = await bcrypt.hash(password, 10);
+
+//   const newUser = new this({
+//     phone,
+//     email,
+//     fullname,
+//     password: hashedPassword,
+//     photourl: photourl || null,
+//     is_email_verified: false,
+//   });
+
+//   return await newUser.save();
+// };
+userSchema.statics.createUser = async function (data) {
+  const { phone, email, fullname, password, photourl } = data;
+
+  // ✅ Validate password before hashing
+  if (!password || typeof password !== "string") {
+    throw new Error("Password must be a non-empty string.");
+  }
+
+  const hashedPassword = await bcrypt.hash(password.trim(), 10);
 
   const newUser = new this({
     phone,
-    email: email.trim().toLowerCase(), // Normalize here!
-    firstname,
-    lastname,
-    fullname: `${firstname} ${lastname}`,
+    email,
+    fullname,
     password: hashedPassword,
     photourl: photourl || null,
     is_email_verified: false,
