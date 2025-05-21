@@ -13,8 +13,11 @@ const registerUser = async (req, res) => {
     const { phone, email, firstname, lastname, password, photourl } = req.body;
 
     // Check if user already exists by phone or email
+    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedPhone = phone.trim();
+
     const check = await User.findOne({
-      $or: [{ email }, { phone }],
+      $or: [{ email: normalizedEmail }, { phone: normalizedPhone }],
     });
 
     if (!check) {
