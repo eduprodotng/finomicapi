@@ -505,7 +505,7 @@ const bcrypt = require("bcrypt");
 
 const userSchema = new mongoose.Schema(
   {
-    fulname: { type: String },
+    fullname: { type: String },
     email: {
       type: String,
       required: true,
@@ -595,6 +595,35 @@ userSchema.statics.storeRefreshToken = async function (userId, token) {
 
 //   return await newUser.save();
 // };
+
+//   static async getProfileByUserId(id) {
+//     const result = await pool.query(
+//       `
+//       SELECT
+//           users.id, users.phone, users.email, users.firstname, users.lastname,
+
+//           users.photourl,
+//           users.created_at, users.updated_at
+
+//       FROM users
+
+//       WHERE users.id = $1
+
+//       GROUP BY users.id, users.phone, users.email, users.firstname, users.lastname,
+
+//                users.photourl,
+//                users.created_at, users.updated_at
+//       `,
+//       [id]
+//     );
+//     return result.rows;
+//   }
+// At the bottom of your schema file, before exporting
+
+userSchema.statics.getProfileByUserId = async function (id) {
+  return await this.findById(id).select("-password -__v -refreshToken");
+};
+
 userSchema.statics.createUser = async function (data) {
   const { phone, email, fullname, password, photourl } = data;
 

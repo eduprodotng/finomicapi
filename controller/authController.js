@@ -65,44 +65,30 @@ const registerUser = async (req, res) => {
 };
 
 const getProfileByUserId = async (req, res) => {
-  const userId = parseInt(req.params.id);
+  const userId = req.params.id;
 
   try {
     const data = await User.getProfileByUserId(userId);
+    console.log("User data from DB:", data);
 
-    if (data.length === 0) {
+    if (!data) {
       return res.status(404).json({
         status: "error",
         message: "User profile not found.",
-        data: data,
       });
     }
 
-    const {
-      id,
-      phone,
-      email,
-      firstname,
-      lastname,
-
-      photourl,
-
-      created_at,
-      updated_at,
-    } = data[0];
-
-    // Map skills to an array
+    const { _id, phone, email, fullname, photourl, createdAt, updatedAt } =
+      data;
 
     const userProfile = {
-      id,
+      id: _id,
       phone,
       email,
-      firstname,
-      lastname,
+      fullname, // <- Here
       photourl,
-
-      created_at,
-      updated_at,
+      createdAt,
+      updatedAt,
     };
 
     res.status(200).json({
