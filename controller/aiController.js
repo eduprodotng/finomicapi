@@ -9,7 +9,7 @@ const {
 } = require("../models/FinIn");
 const jwt = require("jsonwebtoken");
 // Save a new financial inquiry
-
+const Tesseract = require("tesseract.js");
 const { getAIResponse } = require("../services/aiService");
 const path = require("path");
 
@@ -87,6 +87,65 @@ const { extractTextFromPDF } = require("../utils/pdfUtils");
 // };
 
 // Controller Function
+// const createFinancialInquiry = async (req, res) => {
+//   try {
+//     const { chatTitle, chatId, userMessage } = req.body;
+//     const userId = req.user.id;
+
+//     if (!userMessage && !req.file) {
+//       return res
+//         .status(400)
+//         .json({ error: "Please provide a message or a file." });
+//     }
+
+//     let finalMessage = userMessage || "";
+//     let fileUrl = null;
+
+//     if (req.file) {
+//       fileUrl = req.file.location; // ✅ This is the S3 file URL
+
+//       if (req.file.mimetype === "application/pdf") {
+//         const tempFilePath = `/tmp/${Date.now()}-${req.file.originalname}`;
+//         const fs = require("fs");
+//         const { default: fetch } = await import("node-fetch");
+
+//         // Download the file temporarily
+//         const response = await fetch(fileUrl);
+//         const buffer = await response.buffer();
+//         fs.writeFileSync(tempFilePath, buffer);
+
+//         const textContent = await extractTextFromPDF(tempFilePath);
+//         finalMessage += `\n\nSummarize this PDF:\n${textContent}`;
+
+//         fs.unlinkSync(tempFilePath); // cleanup
+//       }
+//     }
+
+//     const aiResponse = await getAIResponse(finalMessage);
+
+//     const inquiry = await saveFinancialInquiry({
+//       userId,
+//       chatTitle,
+//       chatId,
+//       userMessage: finalMessage,
+//       aiResponse,
+//       fileUrl,
+//     });
+
+//     res.status(201).json({
+//       status: "success",
+//       message: "Inquiry processed and saved",
+//       data: inquiry,
+//     });
+//   } catch (err) {
+//     console.error("Error creating inquiry:", err);
+//     res.status(500).json({
+//       status: "error",
+//       message: "Internal server error.",
+//     });
+//   }
+// };
+
 const createFinancialInquiry = async (req, res) => {
   try {
     const { chatTitle, chatId, userMessage } = req.body;
@@ -104,12 +163,14 @@ const createFinancialInquiry = async (req, res) => {
     if (req.file) {
       fileUrl = req.file.location; // ✅ This is the S3 file URL
 
-      if (req.file.mimetype === "application/pdf") {
+      const mime = req.file.mimetype;
+
+      if (mime === "application/pdf") {
+        // --- PDF processing ---
         const tempFilePath = `/tmp/${Date.now()}-${req.file.originalname}`;
         const fs = require("fs");
         const { default: fetch } = await import("node-fetch");
 
-        // Download the file temporarily
         const response = await fetch(fileUrl);
         const buffer = await response.buffer();
         fs.writeFileSync(tempFilePath, buffer);
@@ -118,6 +179,24 @@ const createFinancialInquiry = async (req, res) => {
         finalMessage += `\n\nSummarize this PDF:\n${textContent}`;
 
         fs.unlinkSync(tempFilePath); // cleanup
+      }
+
+      // 🆕 Add OCR logic for image files
+      else if (mime.startsWith("image/")) {
+        const tempImagePath = `/tmp/${Date.now()}-${req.file.originalname}`;
+        const fs = require("fs");
+        const { default: fetch } = await import("node-fetch");
+
+        const response = await fetch(fileUrl);
+        const buffer = await response.buffer();
+        fs.writeFileSync(tempImagePath, buffer);
+
+        const {
+          data: { text },
+        } = await Tesseract.recognize(tempImagePath, "eng");
+        finalMessage += `\n\nExtracted Text from Image:\n${text}`;
+
+        fs.unlinkSync(tempImagePath); // cleanup
       }
     }
 
