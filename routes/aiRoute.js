@@ -49,17 +49,47 @@ const { S3Client } = require("@aws-sdk/client-s3");
 //   createFinancialInquiry
 // );
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/");
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//     cb(null, "uploads/");
+//   },
+//   filename: (req, file, cb) => {
+//     cb(null, `${Date.now()}-${file.originalname}`);
+//   },
+// });
+
+// const upload = multer({ storage });
+
+// router.post(
+//   "/fin-inquiry",
+//   verify,
+//   upload.single("supportingFile"),
+//   createFinancialInquiry
+// );
+// AWS S3 Setup
+const s3 = new S3Client({
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   },
 });
 
-const upload = multer({ storage });
+// Multer + S3 Storage Configuration
+const upload = multer({
+  storage: multerS3({
+    s3,
+    bucket: process.env.AWS_BUCKET_NAME,
+    contentType: multerS3.AUTO_CONTENT_TYPE,
+    key: (req, file, cb) => {
+      const fileKey = `inquiries/${Date.now()}-${file.originalname}`;
+      cb(null, fileKey);
+    },
+  }),
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB
+});
 
+// Route to handle financial inquiry upload
 router.post(
   "/fin-inquiry",
   verify,
