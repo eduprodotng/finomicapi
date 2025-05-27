@@ -9,84 +9,13 @@ const {
 } = require("../models/FinIn");
 const jwt = require("jsonwebtoken");
 // Save a new financial inquiry
-const Tesseract = require("tesseract.js");
+// const Tesseract = require("tesseract.js");
 const { getAIResponse } = require("../services/aiService");
 const path = require("path");
-
+const fs = require("fs");
 const { extractTextFromPDF } = require("../utils/pdfUtils");
+const { createWorker } = require("tesseract.js");
 
-// const createFinancialInquiry = async (req, res) => {
-//   try {
-//     const { chatTitle, chatId, userMessage } = req.body;
-//     const userId = req.user.id;
-
-//     if (!userMessage && !req.file) {
-//       return res
-//         .status(400)
-//         .json({ error: "Please provide a message or a file." });
-//     }
-
-//     let finalMessage = userMessage || "";
-//     let fileUrl = null;
-
-//     if (req.file) {
-//       const file = req.file;
-//       fileUrl = path.join("uploads", file.filename);
-
-//       // Only summarize if PDF
-//       if (file.mimetype === "application/pdf") {
-//         const textContent = await extractTextFromPDF(file.path);
-//         finalMessage += `\n\nSummarize this PDF:\n${textContent}`;
-//       }
-
-//       // If image or other file types: just store them, no processing (for now)
-//     }
-
-//     const aiResponse = await getAIResponse(finalMessage);
-
-//     const inquiry = await saveFinancialInquiry({
-//       userId,
-//       chatTitle,
-//       chatId,
-//       userMessage: finalMessage,
-//       aiResponse,
-//       fileUrl,
-//     });
-
-//     res.status(201).json({
-//       status: "success",
-//       message: "Inquiry processed and saved",
-//       data: inquiry,
-//     });
-//   } catch (err) {
-//     console.error("Error creating inquiry:", err);
-//     res.status(500).json({
-//       status: "error",
-//       message: "Internal server error.",
-//     });
-//   }
-// };
-
-// const getUserInquiries = async (req, res) => {
-//   try {
-//     const userId = req.user.id; // 🔥 Get userId from the verified token
-
-//     const inquiries = await getInquiriesByUser(userId);
-
-//     res.status(200).json({
-//       status: "success",
-//       data: inquiries,
-//     });
-//   } catch (err) {
-//     console.error("Error fetching inquiries:", err);
-//     res.status(500).json({
-//       status: "error",
-//       message: "Internal server error.",
-//     });
-//   }
-// };
-
-// Controller Function
 // const createFinancialInquiry = async (req, res) => {
 //   try {
 //     const { chatTitle, chatId, userMessage } = req.body;
@@ -104,12 +33,14 @@ const { extractTextFromPDF } = require("../utils/pdfUtils");
 //     if (req.file) {
 //       fileUrl = req.file.location; // ✅ This is the S3 file URL
 
-//       if (req.file.mimetype === "application/pdf") {
+//       const mime = req.file.mimetype;
+
+//       if (mime === "application/pdf") {
+//         // --- PDF processing ---
 //         const tempFilePath = `/tmp/${Date.now()}-${req.file.originalname}`;
 //         const fs = require("fs");
 //         const { default: fetch } = await import("node-fetch");
 
-//         // Download the file temporarily
 //         const response = await fetch(fileUrl);
 //         const buffer = await response.buffer();
 //         fs.writeFileSync(tempFilePath, buffer);
@@ -118,6 +49,24 @@ const { extractTextFromPDF } = require("../utils/pdfUtils");
 //         finalMessage += `\n\nSummarize this PDF:\n${textContent}`;
 
 //         fs.unlinkSync(tempFilePath); // cleanup
+//       }
+
+//       // 🆕 Add OCR logic for image files
+//       else if (mime.startsWith("image/")) {
+//         const tempImagePath = `/tmp/${Date.now()}-${req.file.originalname}`;
+//         const fs = require("fs");
+//         const { default: fetch } = await import("node-fetch");
+
+//         const response = await fetch(fileUrl);
+//         const buffer = await response.buffer();
+//         fs.writeFileSync(tempImagePath, buffer);
+
+//         const {
+//           data: { text },
+//         } = await Tesseract.recognize(tempImagePath, "eng");
+//         finalMessage += `\n\nExtracted Text from Image:\n${text}`;
+
+//         fs.unlinkSync(tempImagePath); // cleanup
 //       }
 //     }
 
@@ -146,6 +95,10 @@ const { extractTextFromPDF } = require("../utils/pdfUtils");
 //   }
 // };
 
+// Optional: Fetch user inquiries
+const fetch = (...args) =>
+  import("node-fetch").then(({ default: fetch }) => fetch(...args));
+
 const createFinancialInquiry = async (req, res) => {
   try {
     const { chatTitle, chatId, userMessage } = req.body;
@@ -161,43 +114,34 @@ const createFinancialInquiry = async (req, res) => {
     let fileUrl = null;
 
     if (req.file) {
-      fileUrl = req.file.location; // ✅ This is the S3 file URL
-
+      fileUrl = req.file.location;
       const mime = req.file.mimetype;
 
+      const tempFilePath = `/tmp/${Date.now()}-${req.file.originalname}`;
+      const response = await fetch(fileUrl);
+      const buffer = await response.buffer();
+      fs.writeFileSync(tempFilePath, buffer);
+
       if (mime === "application/pdf") {
-        // --- PDF processing ---
-        const tempFilePath = `/tmp/${Date.now()}-${req.file.originalname}`;
-        const fs = require("fs");
-        const { default: fetch } = await import("node-fetch");
-
-        const response = await fetch(fileUrl);
-        const buffer = await response.buffer();
-        fs.writeFileSync(tempFilePath, buffer);
-
         const textContent = await extractTextFromPDF(tempFilePath);
         finalMessage += `\n\nSummarize this PDF:\n${textContent}`;
+      } else if (mime.startsWith("image/")) {
+        // Don't set corePath manually unless absolutely needed
+        const worker = await createWorker();
 
-        fs.unlinkSync(tempFilePath); // cleanup
-      }
-
-      // 🆕 Add OCR logic for image files
-      else if (mime.startsWith("image/")) {
-        const tempImagePath = `/tmp/${Date.now()}-${req.file.originalname}`;
-        const fs = require("fs");
-        const { default: fetch } = await import("node-fetch");
-
-        const response = await fetch(fileUrl);
-        const buffer = await response.buffer();
-        fs.writeFileSync(tempImagePath, buffer);
+        await worker.load();
+        await worker.loadLanguage("eng");
+        await worker.initialize("eng");
 
         const {
           data: { text },
-        } = await Tesseract.recognize(tempImagePath, "eng");
+        } = await worker.recognize(tempFilePath);
         finalMessage += `\n\nExtracted Text from Image:\n${text}`;
 
-        fs.unlinkSync(tempImagePath); // cleanup
+        await worker.terminate();
       }
+
+      fs.unlinkSync(tempFilePath);
     }
 
     const aiResponse = await getAIResponse(finalMessage);
@@ -225,7 +169,6 @@ const createFinancialInquiry = async (req, res) => {
   }
 };
 
-// Optional: Fetch user inquiries
 const getUserInquiries = async (req, res) => {
   try {
     const userId = req.user.id;
