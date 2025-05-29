@@ -39,7 +39,9 @@ async function saveFinancialInquiry({
 
 // Get all inquiries for user ordered by createdAt desc
 async function getInquiriesByUser(userId) {
-  return FinancialInquiry.find({ userId }).sort({ createdAt: -1 }).exec();
+  return FinancialInquiry.find({ userId, isArchived: false })
+    .sort({ createdAt: -1 })
+    .exec();
 }
 
 // Get inquiries for last 7 days for user
