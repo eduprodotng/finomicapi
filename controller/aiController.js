@@ -6,6 +6,7 @@ const {
   getInquiriesFromDateRange,
   archiveAllForUser,
   getInquiriesByChatIdModel,
+  deleteAllInquiriesForUser,
   getMessagesByChatId,
 } = require("../models/FinIn");
 const jwt = require("jsonwebtoken");
@@ -209,11 +210,11 @@ const ArchiveAll = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
 const DeleteAll = async (req, res) => {
   try {
     const userId = req.user.id;
-    await Inquiry.deleteMany({ userId });
+    await deleteAllInquiriesForUser(userId); // ⬅️ Uses the helper
+
     res.status(200).json({ message: "All chats deleted." });
   } catch (err) {
     console.error("Error deleting all chats:", err);

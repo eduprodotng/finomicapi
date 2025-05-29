@@ -100,11 +100,11 @@ router.post(
 );
 
 router.get("/fin-inquiry", verify, getUserInquiries);
+router.put("/fin-inquiry/archive-all", verify, ArchiveAll);
 
-router.get("/fin-inquiry/delete-all", verify, DeleteAll);
 router.get("/fin-inquiry/yesterday", verify, getChatsFromYesterday);
 router.get("/fin-inquiry/today", verify, getChatsFromToday);
 router.get("/fin-inquiry/last-7-days", verify, getUserRecentInquiries);
 router.get("/fin-inquiry/chat/:chatId", verify, getInquiriesByChatId);
-router.put("/fin-inquiry/archive-all", verify, ArchiveAll);
+router.delete("/fin-inquiry/delete-all", verify, DeleteAll);
 module.exports = router;

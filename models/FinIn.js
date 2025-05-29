@@ -82,6 +82,10 @@ async function archiveAllForUser(userId) {
   return FinancialInquiry.updateMany({ userId }, { isArchived: true });
 }
 
+async function deleteAllInquiriesForUser(userId) {
+  return FinancialInquiry.deleteMany({ userId });
+}
+
 // Get inquiries within date range for user
 async function getInquiriesFromDateRange(userId, startDate, endDate) {
   return FinancialInquiry.find({
@@ -108,4 +112,5 @@ module.exports = {
   getInquiriesFromDateRange,
   getMessagesByChatId,
   archiveAllForUser,
+  deleteAllInquiriesForUser,
 };
