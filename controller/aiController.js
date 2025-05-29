@@ -4,6 +4,7 @@ const {
   getInquiriesFromLast7Days,
   getChatSessionsByUser,
   getInquiriesFromDateRange,
+  archiveAllForUser,
   getInquiriesByChatIdModel,
   getMessagesByChatId,
 } = require("../models/FinIn");
@@ -186,6 +187,40 @@ const getUserInquiries = async (req, res) => {
     });
   }
 };
+
+// const ArchiveAll = async (req, res) => {
+//   try {
+//     const userId = req.user.id;
+//     await FinancialInquiry.updateMany({ userId }, { isArchived: true });
+//     res.status(200).json({ message: "All chats archived." });
+//   } catch (err) {
+//     console.error("Error archiving all chats:", err);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// };
+const ArchiveAll = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    await archiveAllForUser(userId);
+
+    res.status(200).json({ message: "All chats archived." });
+  } catch (err) {
+    console.error("Error archiving all chats:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const DeleteAll = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    await Inquiry.deleteMany({ userId });
+    res.status(200).json({ message: "All chats deleted." });
+  } catch (err) {
+    console.error("Error deleting all chats:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 const getUserRecentInquiries = async (req, res) => {
   try {
     const userId = req.user.id; // Use the user ID from the verified token
@@ -366,7 +401,9 @@ module.exports = {
   createFinancialInquiry,
   getUserInquiries,
   getUserRecentInquiries,
+  ArchiveAll,
   getInquiriesByChatId,
+  DeleteAll,
   getUserChatSessions,
   getChatMessages,
   getChatsFromYesterday,

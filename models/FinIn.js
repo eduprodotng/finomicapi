@@ -8,6 +8,8 @@ const financialInquirySchema = new mongoose.Schema({
   aiResponse: { type: String, required: false },
   fileUrl: { type: String, required: false },
   createdAt: { type: Date, default: Date.now },
+  isArchived: { type: Boolean, default: false },
+  isDeleted: { type: Boolean, default: false },
 });
 
 const FinancialInquiry = mongoose.model(
@@ -74,6 +76,9 @@ async function getMessagesByChatId(userId, chatId) {
     .sort({ createdAt: 1 })
     .exec();
 }
+async function archiveAllForUser(userId) {
+  return FinancialInquiry.updateMany({ userId }, { isArchived: true });
+}
 
 // Get inquiries within date range for user
 async function getInquiriesFromDateRange(userId, startDate, endDate) {
@@ -100,4 +105,5 @@ module.exports = {
   getChatSessionsByUser,
   getInquiriesFromDateRange,
   getMessagesByChatId,
+  archiveAllForUser,
 };

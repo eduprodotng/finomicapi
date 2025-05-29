@@ -9,6 +9,8 @@ const {
   getChatsFromYesterday,
   getChatsFromToday,
   getInquiriesByChatId,
+  ArchiveAll,
+  DeleteAll,
 } = require("../controller/aiController");
 const router = express.Router();
 const { getClientIp } = require("../middlewares/ipgetter");
@@ -98,9 +100,11 @@ router.post(
 );
 
 router.get("/fin-inquiry", verify, getUserInquiries);
+
+router.get("/fin-inquiry/delete-all", verify, DeleteAll);
 router.get("/fin-inquiry/yesterday", verify, getChatsFromYesterday);
 router.get("/fin-inquiry/today", verify, getChatsFromToday);
 router.get("/fin-inquiry/last-7-days", verify, getUserRecentInquiries);
 router.get("/fin-inquiry/chat/:chatId", verify, getInquiriesByChatId);
-
+router.put("/fin-inquiry/archive-all", verify, ArchiveAll);
 module.exports = router;
