@@ -10,8 +10,7 @@ const {
   getMessagesByChatId,
 } = require("../models/FinIn");
 const jwt = require("jsonwebtoken");
-// Save a new financial inquiry
-// const Tesseract = require("tesseract.js");
+
 const { getAIResponse } = require("../services/aiService");
 const path = require("path");
 const fs = require("fs");
