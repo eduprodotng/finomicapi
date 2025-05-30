@@ -207,7 +207,7 @@ const createFinancialInquiry = async (req, res) => {
           data: { text },
         } = await Tesseract.recognize(tempFilePath, "eng", {
           corePath:
-            "https://finomicapi-seven.vercel.app/tesseract/tesseract-core-simd.js",
+            "https://cdn.jsdelivr.net/npm/tesseract.js-core@2.3.0/tesseract-core-simd.js",
         });
 
         finalMessage += `\n\nExtracted Text from Image:\n${text}`;
