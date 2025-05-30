@@ -10,6 +10,7 @@ const {
   getMessagesByChatId,
 } = require("../models/FinIn");
 const jwt = require("jsonwebtoken");
+const { extractTextFromImageWithTextract } = require("../utils/textract"); // update path as needed
 
 const { getAIResponse } = require("../services/aiService");
 const path = require("path");
@@ -185,6 +186,42 @@ const createFinancialInquiry = async (req, res) => {
     let finalMessage = userMessage || "";
     let fileUrl = null;
 
+    // if (req.file) {
+    //   fileUrl = req.file.location;
+    //   const mime = req.file.mimetype;
+
+    //   // Download the file to /tmp
+    //   const tempFilePath = path.join(
+    //     "/tmp",
+    //     `${Date.now()}-${req.file.originalname}`
+    //   );
+    //   const response = await fetch(fileUrl);
+    //   const buffer = await response.buffer();
+    //   fs.writeFileSync(tempFilePath, buffer);
+
+    //   if (mime === "application/pdf") {
+    //     const textContent = await extractTextFromPDF(tempFilePath);
+    //     finalMessage += `\n\nSummarize this PDF:\n${textContent}`;
+    //   } else if (mime.startsWith("image/")) {
+    //     // const {
+    //     //   data: { text },
+    //     // } = await Tesseract.recognize(tempFilePath, "eng", {
+    //     //   corePath:
+    //     //     "https://cdn.jsdelivr.net/npm/tesseract.js-core@2.3.0/tesseract-core-simd.js",
+    //     //   workerPath:
+    //     //     "https://cdn.jsdelivr.net/npm/tesseract.js@2.1.5/dist/worker.min.js",
+    //     //   langPath: "https://cdn.jsdelivr.net/npm/tesseract.js@2.1.5/lang",
+    //     // });
+    //     const {
+    //       data: { text },
+    //     } = await Tesseract.recognize(tempFilePath, "eng");
+
+    //     finalMessage += `\n\nExtracted Text from Image:\n${text}`;
+    //   }
+
+    //   // Cleanup
+    //   fs.unlinkSync(tempFilePath);
+    // }
     if (req.file) {
       fileUrl = req.file.location;
       const mime = req.file.mimetype;
@@ -202,23 +239,10 @@ const createFinancialInquiry = async (req, res) => {
         const textContent = await extractTextFromPDF(tempFilePath);
         finalMessage += `\n\nSummarize this PDF:\n${textContent}`;
       } else if (mime.startsWith("image/")) {
-        // const {
-        //   data: { text },
-        // } = await Tesseract.recognize(tempFilePath, "eng", {
-        //   corePath:
-        //     "https://cdn.jsdelivr.net/npm/tesseract.js-core@2.3.0/tesseract-core-simd.js",
-        //   workerPath:
-        //     "https://cdn.jsdelivr.net/npm/tesseract.js@2.1.5/dist/worker.min.js",
-        //   langPath: "https://cdn.jsdelivr.net/npm/tesseract.js@2.1.5/lang",
-        // });
-        const {
-          data: { text },
-        } = await Tesseract.recognize(tempFilePath, "eng");
-
+        const text = await extractTextFromImageWithTextract(tempFilePath);
         finalMessage += `\n\nExtracted Text from Image:\n${text}`;
       }
 
-      // Cleanup
       fs.unlinkSync(tempFilePath);
     }
 

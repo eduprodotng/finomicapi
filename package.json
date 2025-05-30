@@ -18,6 +18,7 @@
   "homepage": "",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.490.0",
+    "@aws-sdk/client-textract": "^3.821.0",
     "@aws-sdk/s3-request-presigner": "^3.787.0",
     "@sendgrid/mail": "^8.1.5",
     "@smithy/node-http-handler": "^4.0.2",
