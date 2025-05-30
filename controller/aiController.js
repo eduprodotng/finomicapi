@@ -17,7 +17,10 @@ const path = require("path");
 const fs = require("fs");
 const { extractTextFromPDF } = require("../utils/pdfUtils");
 const { createWorker } = require("tesseract.js");
+const Tesseract = require("tesseract.js");
 
+const fetch = (...args) =>
+  import("node-fetch").then(({ default: fetch }) => fetch(...args));
 // const createFinancialInquiry = async (req, res) => {
 //   try {
 //     const { chatTitle, chatId, userMessage } = req.body;
@@ -98,8 +101,76 @@ const { createWorker } = require("tesseract.js");
 // };
 
 // Optional: Fetch user inquiries
-const fetch = (...args) =>
-  import("node-fetch").then(({ default: fetch }) => fetch(...args));
+
+// const createFinancialInquiry = async (req, res) => {
+//   try {
+//     const { chatTitle, chatId, userMessage } = req.body;
+//     const userId = req.user.id;
+
+//     if (!userMessage && !req.file) {
+//       return res
+//         .status(400)
+//         .json({ error: "Please provide a message or a file." });
+//     }
+
+//     let finalMessage = userMessage || "";
+//     let fileUrl = null;
+
+//     if (req.file) {
+//       fileUrl = req.file.location;
+//       const mime = req.file.mimetype;
+
+//       const tempFilePath = `/tmp/${Date.now()}-${req.file.originalname}`;
+//       const response = await fetch(fileUrl);
+//       const buffer = await response.buffer();
+//       fs.writeFileSync(tempFilePath, buffer);
+
+//       if (mime === "application/pdf") {
+//         const textContent = await extractTextFromPDF(tempFilePath);
+//         finalMessage += `\n\nSummarize this PDF:\n${textContent}`;
+//       } else if (mime.startsWith("image/")) {
+//         // Don't set corePath manually unless absolutely needed
+//         const worker = await createWorker();
+
+//         await worker.load();
+//         await worker.loadLanguage("eng");
+//         await worker.initialize("eng");
+
+//         const {
+//           data: { text },
+//         } = await worker.recognize(tempFilePath);
+//         finalMessage += `\n\nExtracted Text from Image:\n${text}`;
+
+//         await worker.terminate();
+//       }
+
+//       fs.unlinkSync(tempFilePath);
+//     }
+
+//     const aiResponse = await getAIResponse(finalMessage);
+
+//     const inquiry = await saveFinancialInquiry({
+//       userId,
+//       chatTitle,
+//       chatId,
+//       userMessage: finalMessage,
+//       aiResponse,
+//       fileUrl,
+//     });
+
+//     res.status(201).json({
+//       status: "success",
+//       message: "Inquiry processed and saved",
+//       data: inquiry,
+//     });
+//   } catch (err) {
+//     console.error("Error creating inquiry:", err);
+//     res.status(500).json({
+//       status: "error",
+//       message: "Internal server error.",
+//     });
+//   }
+// };
 
 const createFinancialInquiry = async (req, res) => {
   try {
@@ -119,7 +190,11 @@ const createFinancialInquiry = async (req, res) => {
       fileUrl = req.file.location;
       const mime = req.file.mimetype;
 
-      const tempFilePath = `/tmp/${Date.now()}-${req.file.originalname}`;
+      // Download the file to /tmp
+      const tempFilePath = path.join(
+        "/tmp",
+        `${Date.now()}-${req.file.originalname}`
+      );
       const response = await fetch(fileUrl);
       const buffer = await response.buffer();
       fs.writeFileSync(tempFilePath, buffer);
@@ -128,21 +203,14 @@ const createFinancialInquiry = async (req, res) => {
         const textContent = await extractTextFromPDF(tempFilePath);
         finalMessage += `\n\nSummarize this PDF:\n${textContent}`;
       } else if (mime.startsWith("image/")) {
-        // Don't set corePath manually unless absolutely needed
-        const worker = await createWorker();
-
-        await worker.load();
-        await worker.loadLanguage("eng");
-        await worker.initialize("eng");
-
+        // Use default Tesseract.recognize with CDN (no langPath or createWorker)
         const {
           data: { text },
-        } = await worker.recognize(tempFilePath);
+        } = await Tesseract.recognize(tempFilePath, "eng");
         finalMessage += `\n\nExtracted Text from Image:\n${text}`;
-
-        await worker.terminate();
       }
 
+      // Cleanup
       fs.unlinkSync(tempFilePath);
     }
 
@@ -170,7 +238,6 @@ const createFinancialInquiry = async (req, res) => {
     });
   }
 };
-
 const getUserInquiries = async (req, res) => {
   try {
     const userId = req.user.id;
