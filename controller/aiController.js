@@ -203,10 +203,13 @@ const createFinancialInquiry = async (req, res) => {
         const textContent = await extractTextFromPDF(tempFilePath);
         finalMessage += `\n\nSummarize this PDF:\n${textContent}`;
       } else if (mime.startsWith("image/")) {
-        // Use default Tesseract.recognize with CDN (no langPath or createWorker)
         const {
           data: { text },
-        } = await Tesseract.recognize(tempFilePath, "eng");
+        } = await Tesseract.recognize(tempFilePath, "eng", {
+          corePath:
+            "//https://finomicapi-seven.vercel.app/tesseract/tesseract-core-simd.js",
+        });
+
         finalMessage += `\n\nExtracted Text from Image:\n${text}`;
       }
 
