@@ -202,15 +202,18 @@ const createFinancialInquiry = async (req, res) => {
         const textContent = await extractTextFromPDF(tempFilePath);
         finalMessage += `\n\nSummarize this PDF:\n${textContent}`;
       } else if (mime.startsWith("image/")) {
+        // const {
+        //   data: { text },
+        // } = await Tesseract.recognize(tempFilePath, "eng", {
+        //   corePath:
+        //     "https://cdn.jsdelivr.net/npm/tesseract.js-core@2.3.0/tesseract-core-simd.js",
+        //   workerPath:
+        //     "https://cdn.jsdelivr.net/npm/tesseract.js@2.1.5/dist/worker.min.js",
+        //   langPath: "https://cdn.jsdelivr.net/npm/tesseract.js@2.1.5/lang",
+        // });
         const {
           data: { text },
-        } = await Tesseract.recognize(tempFilePath, "eng", {
-          corePath:
-            "https://cdn.jsdelivr.net/npm/tesseract.js-core@2.3.0/tesseract-core-simd.js",
-          workerPath:
-            "https://cdn.jsdelivr.net/npm/tesseract.js@2.1.5/dist/worker.min.js",
-          langPath: "https://cdn.jsdelivr.net/npm/tesseract.js@2.1.5/lang",
-        });
+        } = await Tesseract.recognize(tempFilePath, "eng");
 
         finalMessage += `\n\nExtracted Text from Image:\n${text}`;
       }
