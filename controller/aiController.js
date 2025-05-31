@@ -9,10 +9,34 @@ const {
   deleteAllInquiriesForUser,
   getMessagesByChatId,
 } = require("../models/FinIn");
+const { saveInquiry, getInquiryByUser } = require("../models/Inquiry");
+const { saveExpense, getExpenseByUser } = require("../models/Expense");
+const { saveCredit, getCreditByUser } = require("../models/Credit");
+const { saveBuy, getBuyByUser } = require("../models/Buy");
+const { saveDefi, getDefiByUser } = require("../models/Defi");
+const { saveEd, getEdByUser } = require("../models/Ed");
+const { saveGoal, getGoalByUser } = require("../models/Goal");
+const { saveBusiness, getBusinessByUser } = require("../models/Business");
+const { saveInvestment, getInvestmentByUser } = require("../models/Investment");
+const { saveLoan, getLoanByUser } = require("../models/Loan");
+const { saveBudget, getBudgetByUser } = require("../models/Budget");
+const { saveAnalysis, getAnalysisByUser } = require("../models/Analysis");
 const jwt = require("jsonwebtoken");
 const { extractTextFromImageWithTextract } = require("../utils/textract"); // update path as needed
 
 const { getAIResponse } = require("../services/aiService");
+const { getInquiryAIResponse } = require("../services/inquiryService");
+const { getbudgetAIResponse } = require("../services/budgetService");
+const { getanalysisAIResponse } = require("../services/analysisService");
+const { getgoalAIResponse } = require("../services/goalService");
+const { getcreditAIResponse } = require("../services/creditService");
+const { getloanAIResponse } = require("../services/loanService");
+const { getbuyAIResponse } = require("../services/buyService");
+const { getinvestmentAIResponse } = require("../services/investmentService");
+const { getdefiAIResponse } = require("../services/defiService");
+const { getedAIResponse } = require("../services/edService");
+const { getbusinessAIResponse } = require("../services/businessService");
+const { getexpenseAIResponse } = require("../services/expenseService");
 const path = require("path");
 const fs = require("fs");
 const { extractTextFromPDF } = require("../utils/pdfUtils");
@@ -270,10 +294,959 @@ const createFinancialInquiry = async (req, res) => {
     });
   }
 };
+const createInquiry = async (req, res) => {
+  try {
+    const { chatTitle, chatId, userMessage } = req.body;
+    const userId = req.user.id;
+
+    if (!userMessage && !req.file) {
+      return res
+        .status(400)
+        .json({ error: "Please provide a message or a file." });
+    }
+
+    let finalMessage = userMessage || "";
+    let fileUrl = null;
+
+    if (req.file) {
+      fileUrl = req.file.location;
+      const mime = req.file.mimetype;
+
+      // Download the file to /tmp
+      const tempFilePath = path.join(
+        "/tmp",
+        `${Date.now()}-${req.file.originalname}`
+      );
+      const response = await fetch(fileUrl);
+      const buffer = await response.buffer();
+      fs.writeFileSync(tempFilePath, buffer);
+
+      if (mime === "application/pdf") {
+        const textContent = await extractTextFromPDF(tempFilePath);
+        finalMessage += `\n\nSummarize this PDF:\n${textContent}`;
+      } else if (mime.startsWith("image/")) {
+        const text = await extractTextFromImageWithTextract(tempFilePath);
+        finalMessage += `\n\nExtracted Text from Image:\n${text}`;
+      }
+
+      fs.unlinkSync(tempFilePath);
+    }
+
+    const aiResponse = await getInquiryAIResponse(finalMessage);
+
+    const inquiry = await saveInquiry({
+      userId,
+      chatTitle,
+      chatId,
+      userMessage: finalMessage,
+      aiResponse,
+      fileUrl,
+    });
+
+    res.status(201).json({
+      status: "success",
+      message: "Inquiry processed and saved",
+      data: inquiry,
+    });
+  } catch (err) {
+    console.error("Error creating inquiry:", err);
+    res.status(500).json({
+      status: "error",
+      message: "Internal server error.",
+    });
+  }
+};
+const createExpense = async (req, res) => {
+  try {
+    const { chatTitle, chatId, userMessage } = req.body;
+    const userId = req.user.id;
+
+    if (!userMessage && !req.file) {
+      return res
+        .status(400)
+        .json({ error: "Please provide a message or a file." });
+    }
+
+    let finalMessage = userMessage || "";
+    let fileUrl = null;
+
+    if (req.file) {
+      fileUrl = req.file.location;
+      const mime = req.file.mimetype;
+
+      // Download the file to /tmp
+      const tempFilePath = path.join(
+        "/tmp",
+        `${Date.now()}-${req.file.originalname}`
+      );
+      const response = await fetch(fileUrl);
+      const buffer = await response.buffer();
+      fs.writeFileSync(tempFilePath, buffer);
+
+      if (mime === "application/pdf") {
+        const textContent = await extractTextFromPDF(tempFilePath);
+        finalMessage += `\n\nSummarize this PDF:\n${textContent}`;
+      } else if (mime.startsWith("image/")) {
+        const text = await extractTextFromImageWithTextract(tempFilePath);
+        finalMessage += `\n\nExtracted Text from Image:\n${text}`;
+      }
+
+      fs.unlinkSync(tempFilePath);
+    }
+
+    const aiResponse = await getexpenseAIResponse(finalMessage);
+
+    const inquiry = await saveExpense({
+      userId,
+      chatTitle,
+      chatId,
+      userMessage: finalMessage,
+      aiResponse,
+      fileUrl,
+    });
+
+    res.status(201).json({
+      status: "success",
+      message: "Inquiry processed and saved",
+      data: inquiry,
+    });
+  } catch (err) {
+    console.error("Error creating inquiry:", err);
+    res.status(500).json({
+      status: "error",
+      message: "Internal server error.",
+    });
+  }
+};
+const createBudget = async (req, res) => {
+  try {
+    const { chatTitle, chatId, userMessage } = req.body;
+    const userId = req.user.id;
+
+    if (!userMessage && !req.file) {
+      return res
+        .status(400)
+        .json({ error: "Please provide a message or a file." });
+    }
+
+    let finalMessage = userMessage || "";
+    let fileUrl = null;
+
+    if (req.file) {
+      fileUrl = req.file.location;
+      const mime = req.file.mimetype;
+
+      // Download the file to /tmp
+      const tempFilePath = path.join(
+        "/tmp",
+        `${Date.now()}-${req.file.originalname}`
+      );
+      const response = await fetch(fileUrl);
+      const buffer = await response.buffer();
+      fs.writeFileSync(tempFilePath, buffer);
+
+      if (mime === "application/pdf") {
+        const textContent = await extractTextFromPDF(tempFilePath);
+        finalMessage += `\n\nSummarize this PDF:\n${textContent}`;
+      } else if (mime.startsWith("image/")) {
+        const text = await extractTextFromImageWithTextract(tempFilePath);
+        finalMessage += `\n\nExtracted Text from Image:\n${text}`;
+      }
+
+      fs.unlinkSync(tempFilePath);
+    }
+
+    const aiResponse = await getbudgetAIResponse(finalMessage);
+
+    const inquiry = await saveBudget({
+      userId,
+      chatTitle,
+      chatId,
+      userMessage: finalMessage,
+      aiResponse,
+      fileUrl,
+    });
+
+    res.status(201).json({
+      status: "success",
+      message: "Inquiry processed and saved",
+      data: inquiry,
+    });
+  } catch (err) {
+    console.error("Error creating inquiry:", err);
+    res.status(500).json({
+      status: "error",
+      message: "Internal server error.",
+    });
+  }
+};
+const createAnalysis = async (req, res) => {
+  try {
+    const { chatTitle, chatId, userMessage } = req.body;
+    const userId = req.user.id;
+
+    if (!userMessage && !req.file) {
+      return res
+        .status(400)
+        .json({ error: "Please provide a message or a file." });
+    }
+
+    let finalMessage = userMessage || "";
+    let fileUrl = null;
+
+    if (req.file) {
+      fileUrl = req.file.location;
+      const mime = req.file.mimetype;
+
+      // Download the file to /tmp
+      const tempFilePath = path.join(
+        "/tmp",
+        `${Date.now()}-${req.file.originalname}`
+      );
+      const response = await fetch(fileUrl);
+      const buffer = await response.buffer();
+      fs.writeFileSync(tempFilePath, buffer);
+
+      if (mime === "application/pdf") {
+        const textContent = await extractTextFromPDF(tempFilePath);
+        finalMessage += `\n\nSummarize this PDF:\n${textContent}`;
+      } else if (mime.startsWith("image/")) {
+        const text = await extractTextFromImageWithTextract(tempFilePath);
+        finalMessage += `\n\nExtracted Text from Image:\n${text}`;
+      }
+
+      fs.unlinkSync(tempFilePath);
+    }
+
+    const aiResponse = await getanalysisAIResponse(finalMessage);
+
+    const inquiry = await saveAnalysis({
+      userId,
+      chatTitle,
+      chatId,
+      userMessage: finalMessage,
+      aiResponse,
+      fileUrl,
+    });
+
+    res.status(201).json({
+      status: "success",
+      message: "Inquiry processed and saved",
+      data: inquiry,
+    });
+  } catch (err) {
+    console.error("Error creating inquiry:", err);
+    res.status(500).json({
+      status: "error",
+      message: "Internal server error.",
+    });
+  }
+};
+const createGoal = async (req, res) => {
+  try {
+    const { chatTitle, chatId, userMessage } = req.body;
+    const userId = req.user.id;
+
+    if (!userMessage && !req.file) {
+      return res
+        .status(400)
+        .json({ error: "Please provide a message or a file." });
+    }
+
+    let finalMessage = userMessage || "";
+    let fileUrl = null;
+
+    if (req.file) {
+      fileUrl = req.file.location;
+      const mime = req.file.mimetype;
+
+      // Download the file to /tmp
+      const tempFilePath = path.join(
+        "/tmp",
+        `${Date.now()}-${req.file.originalname}`
+      );
+      const response = await fetch(fileUrl);
+      const buffer = await response.buffer();
+      fs.writeFileSync(tempFilePath, buffer);
+
+      if (mime === "application/pdf") {
+        const textContent = await extractTextFromPDF(tempFilePath);
+        finalMessage += `\n\nSummarize this PDF:\n${textContent}`;
+      } else if (mime.startsWith("image/")) {
+        const text = await extractTextFromImageWithTextract(tempFilePath);
+        finalMessage += `\n\nExtracted Text from Image:\n${text}`;
+      }
+
+      fs.unlinkSync(tempFilePath);
+    }
+
+    const aiResponse = await getgoalAIResponse(finalMessage);
+
+    const inquiry = await saveGoal({
+      userId,
+      chatTitle,
+      chatId,
+      userMessage: finalMessage,
+      aiResponse,
+      fileUrl,
+    });
+
+    res.status(201).json({
+      status: "success",
+      message: "Inquiry processed and saved",
+      data: inquiry,
+    });
+  } catch (err) {
+    console.error("Error creating inquiry:", err);
+    res.status(500).json({
+      status: "error",
+      message: "Internal server error.",
+    });
+  }
+};
+const createCredit = async (req, res) => {
+  try {
+    const { chatTitle, chatId, userMessage } = req.body;
+    const userId = req.user.id;
+
+    if (!userMessage && !req.file) {
+      return res
+        .status(400)
+        .json({ error: "Please provide a message or a file." });
+    }
+
+    let finalMessage = userMessage || "";
+    let fileUrl = null;
+
+    if (req.file) {
+      fileUrl = req.file.location;
+      const mime = req.file.mimetype;
+
+      // Download the file to /tmp
+      const tempFilePath = path.join(
+        "/tmp",
+        `${Date.now()}-${req.file.originalname}`
+      );
+      const response = await fetch(fileUrl);
+      const buffer = await response.buffer();
+      fs.writeFileSync(tempFilePath, buffer);
+
+      if (mime === "application/pdf") {
+        const textContent = await extractTextFromPDF(tempFilePath);
+        finalMessage += `\n\nSummarize this PDF:\n${textContent}`;
+      } else if (mime.startsWith("image/")) {
+        const text = await extractTextFromImageWithTextract(tempFilePath);
+        finalMessage += `\n\nExtracted Text from Image:\n${text}`;
+      }
+
+      fs.unlinkSync(tempFilePath);
+    }
+
+    const aiResponse = await getcreditAIResponse(finalMessage);
+
+    const inquiry = await saveCredit({
+      userId,
+      chatTitle,
+      chatId,
+      userMessage: finalMessage,
+      aiResponse,
+      fileUrl,
+    });
+
+    res.status(201).json({
+      status: "success",
+      message: "Inquiry processed and saved",
+      data: inquiry,
+    });
+  } catch (err) {
+    console.error("Error creating inquiry:", err);
+    res.status(500).json({
+      status: "error",
+      message: "Internal server error.",
+    });
+  }
+};
+const createLoan = async (req, res) => {
+  try {
+    const { chatTitle, chatId, userMessage } = req.body;
+    const userId = req.user.id;
+
+    if (!userMessage && !req.file) {
+      return res
+        .status(400)
+        .json({ error: "Please provide a message or a file." });
+    }
+
+    let finalMessage = userMessage || "";
+    let fileUrl = null;
+
+    if (req.file) {
+      fileUrl = req.file.location;
+      const mime = req.file.mimetype;
+
+      // Download the file to /tmp
+      const tempFilePath = path.join(
+        "/tmp",
+        `${Date.now()}-${req.file.originalname}`
+      );
+      const response = await fetch(fileUrl);
+      const buffer = await response.buffer();
+      fs.writeFileSync(tempFilePath, buffer);
+
+      if (mime === "application/pdf") {
+        const textContent = await extractTextFromPDF(tempFilePath);
+        finalMessage += `\n\nSummarize this PDF:\n${textContent}`;
+      } else if (mime.startsWith("image/")) {
+        const text = await extractTextFromImageWithTextract(tempFilePath);
+        finalMessage += `\n\nExtracted Text from Image:\n${text}`;
+      }
+
+      fs.unlinkSync(tempFilePath);
+    }
+
+    const aiResponse = await getloanAIResponse(finalMessage);
+
+    const inquiry = await saveLoan({
+      userId,
+      chatTitle,
+      chatId,
+      userMessage: finalMessage,
+      aiResponse,
+      fileUrl,
+    });
+
+    res.status(201).json({
+      status: "success",
+      message: "Inquiry processed and saved",
+      data: inquiry,
+    });
+  } catch (err) {
+    console.error("Error creating inquiry:", err);
+    res.status(500).json({
+      status: "error",
+      message: "Internal server error.",
+    });
+  }
+};
+const createBuy = async (req, res) => {
+  try {
+    const { chatTitle, chatId, userMessage } = req.body;
+    const userId = req.user.id;
+
+    if (!userMessage && !req.file) {
+      return res
+        .status(400)
+        .json({ error: "Please provide a message or a file." });
+    }
+
+    let finalMessage = userMessage || "";
+    let fileUrl = null;
+
+    if (req.file) {
+      fileUrl = req.file.location;
+      const mime = req.file.mimetype;
+
+      // Download the file to /tmp
+      const tempFilePath = path.join(
+        "/tmp",
+        `${Date.now()}-${req.file.originalname}`
+      );
+      const response = await fetch(fileUrl);
+      const buffer = await response.buffer();
+      fs.writeFileSync(tempFilePath, buffer);
+
+      if (mime === "application/pdf") {
+        const textContent = await extractTextFromPDF(tempFilePath);
+        finalMessage += `\n\nSummarize this PDF:\n${textContent}`;
+      } else if (mime.startsWith("image/")) {
+        const text = await extractTextFromImageWithTextract(tempFilePath);
+        finalMessage += `\n\nExtracted Text from Image:\n${text}`;
+      }
+
+      fs.unlinkSync(tempFilePath);
+    }
+
+    const aiResponse = await getbuyAIResponse(finalMessage);
+
+    const inquiry = await saveBuy({
+      userId,
+      chatTitle,
+      chatId,
+      userMessage: finalMessage,
+      aiResponse,
+      fileUrl,
+    });
+
+    res.status(201).json({
+      status: "success",
+      message: "Inquiry processed and saved",
+      data: inquiry,
+    });
+  } catch (err) {
+    console.error("Error creating inquiry:", err);
+    res.status(500).json({
+      status: "error",
+      message: "Internal server error.",
+    });
+  }
+};
+const createInvestment = async (req, res) => {
+  try {
+    const { chatTitle, chatId, userMessage } = req.body;
+    const userId = req.user.id;
+
+    if (!userMessage && !req.file) {
+      return res
+        .status(400)
+        .json({ error: "Please provide a message or a file." });
+    }
+
+    let finalMessage = userMessage || "";
+    let fileUrl = null;
+
+    if (req.file) {
+      fileUrl = req.file.location;
+      const mime = req.file.mimetype;
+
+      // Download the file to /tmp
+      const tempFilePath = path.join(
+        "/tmp",
+        `${Date.now()}-${req.file.originalname}`
+      );
+      const response = await fetch(fileUrl);
+      const buffer = await response.buffer();
+      fs.writeFileSync(tempFilePath, buffer);
+
+      if (mime === "application/pdf") {
+        const textContent = await extractTextFromPDF(tempFilePath);
+        finalMessage += `\n\nSummarize this PDF:\n${textContent}`;
+      } else if (mime.startsWith("image/")) {
+        const text = await extractTextFromImageWithTextract(tempFilePath);
+        finalMessage += `\n\nExtracted Text from Image:\n${text}`;
+      }
+
+      fs.unlinkSync(tempFilePath);
+    }
+
+    const aiResponse = await getinvestmentAIResponse(finalMessage);
+
+    const inquiry = await saveInvestment({
+      userId,
+      chatTitle,
+      chatId,
+      userMessage: finalMessage,
+      aiResponse,
+      fileUrl,
+    });
+
+    res.status(201).json({
+      status: "success",
+      message: "Inquiry processed and saved",
+      data: inquiry,
+    });
+  } catch (err) {
+    console.error("Error creating inquiry:", err);
+    res.status(500).json({
+      status: "error",
+      message: "Internal server error.",
+    });
+  }
+};
+const createDefi = async (req, res) => {
+  try {
+    const { chatTitle, chatId, userMessage } = req.body;
+    const userId = req.user.id;
+
+    if (!userMessage && !req.file) {
+      return res
+        .status(400)
+        .json({ error: "Please provide a message or a file." });
+    }
+
+    let finalMessage = userMessage || "";
+    let fileUrl = null;
+
+    if (req.file) {
+      fileUrl = req.file.location;
+      const mime = req.file.mimetype;
+
+      // Download the file to /tmp
+      const tempFilePath = path.join(
+        "/tmp",
+        `${Date.now()}-${req.file.originalname}`
+      );
+      const response = await fetch(fileUrl);
+      const buffer = await response.buffer();
+      fs.writeFileSync(tempFilePath, buffer);
+
+      if (mime === "application/pdf") {
+        const textContent = await extractTextFromPDF(tempFilePath);
+        finalMessage += `\n\nSummarize this PDF:\n${textContent}`;
+      } else if (mime.startsWith("image/")) {
+        const text = await extractTextFromImageWithTextract(tempFilePath);
+        finalMessage += `\n\nExtracted Text from Image:\n${text}`;
+      }
+
+      fs.unlinkSync(tempFilePath);
+    }
+
+    const aiResponse = await getdefiAIResponse(finalMessage);
+
+    const inquiry = await saveDefi({
+      userId,
+      chatTitle,
+      chatId,
+      userMessage: finalMessage,
+      aiResponse,
+      fileUrl,
+    });
+
+    res.status(201).json({
+      status: "success",
+      message: "Inquiry processed and saved",
+      data: inquiry,
+    });
+  } catch (err) {
+    console.error("Error creating inquiry:", err);
+    res.status(500).json({
+      status: "error",
+      message: "Internal server error.",
+    });
+  }
+};
+const createEd = async (req, res) => {
+  try {
+    const { chatTitle, chatId, userMessage } = req.body;
+    const userId = req.user.id;
+
+    if (!userMessage && !req.file) {
+      return res
+        .status(400)
+        .json({ error: "Please provide a message or a file." });
+    }
+
+    let finalMessage = userMessage || "";
+    let fileUrl = null;
+
+    if (req.file) {
+      fileUrl = req.file.location;
+      const mime = req.file.mimetype;
+
+      // Download the file to /tmp
+      const tempFilePath = path.join(
+        "/tmp",
+        `${Date.now()}-${req.file.originalname}`
+      );
+      const response = await fetch(fileUrl);
+      const buffer = await response.buffer();
+      fs.writeFileSync(tempFilePath, buffer);
+
+      if (mime === "application/pdf") {
+        const textContent = await extractTextFromPDF(tempFilePath);
+        finalMessage += `\n\nSummarize this PDF:\n${textContent}`;
+      } else if (mime.startsWith("image/")) {
+        const text = await extractTextFromImageWithTextract(tempFilePath);
+        finalMessage += `\n\nExtracted Text from Image:\n${text}`;
+      }
+
+      fs.unlinkSync(tempFilePath);
+    }
+
+    const aiResponse = await getedAIResponse(finalMessage);
+
+    const inquiry = await saveEd({
+      userId,
+      chatTitle,
+      chatId,
+      userMessage: finalMessage,
+      aiResponse,
+      fileUrl,
+    });
+
+    res.status(201).json({
+      status: "success",
+      message: "Inquiry processed and saved",
+      data: inquiry,
+    });
+  } catch (err) {
+    console.error("Error creating inquiry:", err);
+    res.status(500).json({
+      status: "error",
+      message: "Internal server error.",
+    });
+  }
+};
+const createBusiness = async (req, res) => {
+  try {
+    const { chatTitle, chatId, userMessage } = req.body;
+    const userId = req.user.id;
+
+    if (!userMessage && !req.file) {
+      return res
+        .status(400)
+        .json({ error: "Please provide a message or a file." });
+    }
+
+    let finalMessage = userMessage || "";
+    let fileUrl = null;
+
+    if (req.file) {
+      fileUrl = req.file.location;
+      const mime = req.file.mimetype;
+
+      // Download the file to /tmp
+      const tempFilePath = path.join(
+        "/tmp",
+        `${Date.now()}-${req.file.originalname}`
+      );
+      const response = await fetch(fileUrl);
+      const buffer = await response.buffer();
+      fs.writeFileSync(tempFilePath, buffer);
+
+      if (mime === "application/pdf") {
+        const textContent = await extractTextFromPDF(tempFilePath);
+        finalMessage += `\n\nSummarize this PDF:\n${textContent}`;
+      } else if (mime.startsWith("image/")) {
+        const text = await extractTextFromImageWithTextract(tempFilePath);
+        finalMessage += `\n\nExtracted Text from Image:\n${text}`;
+      }
+
+      fs.unlinkSync(tempFilePath);
+    }
+
+    const aiResponse = await getbusinessAIResponse(finalMessage);
+
+    const inquiry = await saveBusiness({
+      userId,
+      chatTitle,
+      chatId,
+      userMessage: finalMessage,
+      aiResponse,
+      fileUrl,
+    });
+
+    res.status(201).json({
+      status: "success",
+      message: "Inquiry processed and saved",
+      data: inquiry,
+    });
+  } catch (err) {
+    console.error("Error creating inquiry:", err);
+    res.status(500).json({
+      status: "error",
+      message: "Internal server error.",
+    });
+  }
+};
 const getUserInquiries = async (req, res) => {
   try {
     const userId = req.user.id;
     const inquiries = await getInquiriesByUser(userId);
+
+    res.status(200).json({
+      status: "success",
+      data: inquiries,
+    });
+  } catch (err) {
+    console.error("Error fetching inquiries:", err);
+    res.status(500).json({
+      status: "error",
+      message: "Internal server error.",
+    });
+  }
+};
+
+const getUserInquiry = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const inquiries = await getInquiryByUser(userId);
+
+    res.status(200).json({
+      status: "success",
+      data: inquiries,
+    });
+  } catch (err) {
+    console.error("Error fetching inquiries:", err);
+    res.status(500).json({
+      status: "error",
+      message: "Internal server error.",
+    });
+  }
+};
+const getUserBuy = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const inquiries = await getBuyByUser(userId);
+
+    res.status(200).json({
+      status: "success",
+      data: inquiries,
+    });
+  } catch (err) {
+    console.error("Error fetching inquiries:", err);
+    res.status(500).json({
+      status: "error",
+      message: "Internal server error.",
+    });
+  }
+};
+const getUserDefi = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const inquiries = await getDefiByUser(userId);
+
+    res.status(200).json({
+      status: "success",
+      data: inquiries,
+    });
+  } catch (err) {
+    console.error("Error fetching inquiries:", err);
+    res.status(500).json({
+      status: "error",
+      message: "Internal server error.",
+    });
+  }
+};
+const getUserCredit = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const inquiries = await getCreditByUser(userId);
+
+    res.status(200).json({
+      status: "success",
+      data: inquiries,
+    });
+  } catch (err) {
+    console.error("Error fetching inquiries:", err);
+    res.status(500).json({
+      status: "error",
+      message: "Internal server error.",
+    });
+  }
+};
+const getUserLoan = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const inquiries = await getLoanByUser(userId);
+
+    res.status(200).json({
+      status: "success",
+      data: inquiries,
+    });
+  } catch (err) {
+    console.error("Error fetching inquiries:", err);
+    res.status(500).json({
+      status: "error",
+      message: "Internal server error.",
+    });
+  }
+};
+const getUserBusiness = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const inquiries = await getBusinessByUser(userId);
+
+    res.status(200).json({
+      status: "success",
+      data: inquiries,
+    });
+  } catch (err) {
+    console.error("Error fetching inquiries:", err);
+    res.status(500).json({
+      status: "error",
+      message: "Internal server error.",
+    });
+  }
+};
+const getUserEd = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const inquiries = await getEdByUser(userId);
+
+    res.status(200).json({
+      status: "success",
+      data: inquiries,
+    });
+  } catch (err) {
+    console.error("Error fetching inquiries:", err);
+    res.status(500).json({
+      status: "error",
+      message: "Internal server error.",
+    });
+  }
+};
+const getUserExpense = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const inquiries = await getExpenseByUser(userId);
+
+    res.status(200).json({
+      status: "success",
+      data: inquiries,
+    });
+  } catch (err) {
+    console.error("Error fetching inquiries:", err);
+    res.status(500).json({
+      status: "error",
+      message: "Internal server error.",
+    });
+  }
+};
+const getUserAnalysis = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const inquiries = await getAnalysisByUser(userId);
+
+    res.status(200).json({
+      status: "success",
+      data: inquiries,
+    });
+  } catch (err) {
+    console.error("Error fetching inquiries:", err);
+    res.status(500).json({
+      status: "error",
+      message: "Internal server error.",
+    });
+  }
+};
+const getUserBudget = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const inquiries = await getBudgetByUser(userId);
+
+    res.status(200).json({
+      status: "success",
+      data: inquiries,
+    });
+  } catch (err) {
+    console.error("Error fetching inquiries:", err);
+    res.status(500).json({
+      status: "error",
+      message: "Internal server error.",
+    });
+  }
+};
+const getUserGoal = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const inquiries = await getGoalByUser(userId);
+
+    res.status(200).json({
+      status: "success",
+      data: inquiries,
+    });
+  } catch (err) {
+    console.error("Error fetching inquiries:", err);
+    res.status(500).json({
+      status: "error",
+      message: "Internal server error.",
+    });
+  }
+};
+const getUserInvestment = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const inquiries = await getInvestmentByUser(userId);
 
     res.status(200).json({
       status: "success",
@@ -499,7 +1472,31 @@ const getInquiriesByChatId = async (req, res) => {
 
 module.exports = {
   createFinancialInquiry,
+  createBudget,
+  createBuy,
+  createAnalysis,
+  createInvestment,
+  createGoal,
+  createCredit,
+  createDefi,
+  createEd,
+  createExpense,
+  createInquiry,
+  createLoan,
+  createBusiness,
   getUserInquiries,
+  getUserBuy,
+  getUserBudget,
+  getUserInquiry,
+  getUserLoan,
+  getUserCredit,
+  getUserEd,
+  getUserExpense,
+  getUserDefi,
+  getUserAnalysis,
+  getUserBusiness,
+  getUserGoal,
+  getUserInvestment,
   getUserRecentInquiries,
   ArchiveAll,
   getInquiriesByChatId,

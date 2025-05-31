@@ -5,12 +5,33 @@ const verify = require("../middlewares/verifyToken");
 const {
   createFinancialInquiry,
   getUserInquiries,
+  getUserEd,
+  getUserAnalysis,
+  getUserBudget,
+  getUserBusiness,
+  getUserInvestment,
+  getUserBuy,
+  getUserCredit,
+  getUserDefi,
+  getUserExpense,
+  getUserGoal,
+  getUserInquiry,
+  getUserLoan,
   getUserRecentInquiries,
   getChatsFromYesterday,
   getChatsFromToday,
   getInquiriesByChatId,
   ArchiveAll,
   DeleteAll,
+  createGoal,
+  createAnalysis,
+  createInquiry,
+  createEd,
+  createExpense,
+  createInvestment,
+  createDefi,
+  createCredit,
+  createBudget,
 } = require("../controller/aiController");
 const router = express.Router();
 const { getClientIp } = require("../middlewares/ipgetter");
@@ -98,8 +119,70 @@ router.post(
   upload.single("supportingFile"),
   createFinancialInquiry
 );
+router.post(
+  "/create-goal",
+  verify,
+  upload.single("supportingFile"),
+  createGoal
+);
+router.post(
+  "/create-analysis",
+  verify,
+  upload.single("supportingFile"),
+  createAnalysis
+);
+router.post(
+  "/create-inquiry",
+  verify,
+  upload.single("supportingFile"),
+  createInquiry
+);
+router.post(
+  "/create-budget",
+  verify,
+  upload.single("supportingFile"),
+  createBudget
+);
+router.post("/create-ed", verify, upload.single("supportingFile"), createEd);
+router.post(
+  "/create-expense",
+  verify,
+  upload.single("supportingFile"),
+  createExpense
+);
+router.post(
+  "/create-investment",
+  verify,
+  upload.single("supportingFile"),
+  createInvestment
+);
+router.post(
+  "/create-defi",
+  verify,
+  upload.single("supportingFile"),
+  createDefi
+);
+router.post(
+  "/create-credit",
+  verify,
+  upload.single("supportingFile"),
+  createCredit
+);
 
 router.get("/fin-inquiry", verify, getUserInquiries);
+router.get("/user-analysis", verify, getUserAnalysis);
+router.get("/user-budget", verify, getUserBudget);
+router.get("/user-business", verify, getUserBusiness);
+router.get("/user-buy", verify, getUserBuy);
+router.get("/user-credit", verify, getUserCredit);
+router.get("/user-defi", verify, getUserDefi);
+router.get("/user-ed", verify, getUserEd);
+router.get("/user-expense", verify, getUserExpense);
+router.get("/user-goal", verify, getUserGoal);
+router.get("/user-investment", verify, getUserInvestment);
+router.get("/user-inquiry", verify, getUserInquiry);
+router.get("/user-loan", verify, getUserLoan);
+
 router.put("/fin-inquiry/archive-all", verify, ArchiveAll);
 
 router.get("/fin-inquiry/yesterday", verify, getChatsFromYesterday);
