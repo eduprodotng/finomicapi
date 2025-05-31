@@ -26,7 +26,7 @@ async function getAIResponse(userMessage) {
   for (let attempt = 0; attempt < 5; attempt++) {
     try {
       const response = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
+        model: "gpt-4.0-turbo",
         messages,
         max_tokens: 1000,
         temperature: 0.7,
