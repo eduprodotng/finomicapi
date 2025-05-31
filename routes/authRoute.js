@@ -8,6 +8,7 @@ const {
   changePassword,
   verifyPhone,
   sendVerificationCode,
+  deleteAccount,
   verifyEmail,
   resendEmailVerirficationCode,
 
@@ -81,5 +82,6 @@ router.get(
     );
   }
 );
+router.delete("/delete-account", verify, deleteAccount);
 
 module.exports = router;

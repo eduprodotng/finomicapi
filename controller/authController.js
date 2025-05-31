@@ -64,6 +64,34 @@ const registerUser = async (req, res) => {
   }
 };
 
+const deleteAccount = async (req, res) => {
+  try {
+    const userId = req.user.id; // comes from JWT `verify` middleware
+    const { password } = req.body;
+
+    if (!password) {
+      return res
+        .status(400)
+        .json({ message: "Password is required to delete your account." });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found." });
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Incorrect password." });
+    }
+
+    await User.findByIdAndDelete(userId);
+
+    return res.status(200).json({ message: "Account deleted successfully." });
+  } catch (err) {
+    console.error("Delete Account Error:", err);
+    res.status(500).json({ message: "Server error deleting account." });
+  }
+};
+
 const getProfileByUserId = async (req, res) => {
   const userId = req.params.id;
 
@@ -628,6 +656,7 @@ const resetPassword = async (req, res) => {
 module.exports = {
   registerUser,
   login,
+  deleteAccount,
   refreshToken,
   refreshTokenWeb,
   resetPassword,
