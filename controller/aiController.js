@@ -21,6 +21,7 @@ const { saveInvestment, getInvestmentByUser } = require("../models/Investment");
 const { saveLoan, getLoanByUser } = require("../models/Loan");
 const { saveBudget, getBudgetByUser } = require("../models/Budget");
 const { saveAnalysis, getAnalysisByUser } = require("../models/Analysis");
+const { saveBnpl, getBnplByUser } = require("../models/Bnpl");
 const jwt = require("jsonwebtoken");
 const { extractTextFromImageWithTextract } = require("../utils/textract"); // update path as needed
 
@@ -31,6 +32,7 @@ const { getanalysisAIResponse } = require("../services/analysisService");
 const { getgoalAIResponse } = require("../services/goalService");
 const { getcreditAIResponse } = require("../services/creditService");
 const { getloanAIResponse } = require("../services/loanService");
+const { getbnplAIResponse } = require("../services/bnplService");
 const { getbuyAIResponse } = require("../services/buyService");
 const { getinvestmentAIResponse } = require("../services/investmentService");
 const { getdefiAIResponse } = require("../services/defiService");
@@ -1038,6 +1040,68 @@ const createBusiness = async (req, res) => {
     });
   }
 };
+const createBnpl = async (req, res) => {
+  try {
+    const { chatTitle, chatId, userMessage } = req.body;
+    const userId = req.user.id;
+
+    if (!userMessage && !req.file) {
+      return res
+        .status(400)
+        .json({ error: "Please provide a message or a file." });
+    }
+
+    let finalMessage = userMessage || "";
+    let fileUrl = null;
+
+    if (req.file) {
+      fileUrl = req.file.location;
+      const mime = req.file.mimetype;
+
+      // Download the file to /tmp
+      const tempFilePath = path.join(
+        "/tmp",
+        `${Date.now()}-${req.file.originalname}`
+      );
+      const response = await fetch(fileUrl);
+      const buffer = await response.buffer();
+      fs.writeFileSync(tempFilePath, buffer);
+
+      if (mime === "application/pdf") {
+        const textContent = await extractTextFromPDF(tempFilePath);
+        finalMessage += `\n\nSummarize this PDF:\n${textContent}`;
+      } else if (mime.startsWith("image/")) {
+        const text = await extractTextFromImageWithTextract(tempFilePath);
+        finalMessage += `\n\nExtracted Text from Image:\n${text}`;
+      }
+
+      fs.unlinkSync(tempFilePath);
+    }
+
+    const aiResponse = await getbnplAIResponse(finalMessage);
+
+    const inquiry = await saveBnpl({
+      userId,
+      chatTitle,
+      chatId,
+      userMessage: finalMessage,
+      aiResponse,
+      fileUrl,
+    });
+
+    res.status(201).json({
+      status: "success",
+      message: "Inquiry processed and saved",
+      data: inquiry,
+    });
+  } catch (err) {
+    console.error("Error creating inquiry:", err);
+    res.status(500).json({
+      status: "error",
+      message: "Internal server error.",
+    });
+  }
+};
 const getUserInquiries = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -1077,6 +1141,23 @@ const getUserBuy = async (req, res) => {
   try {
     const userId = req.user.id;
     const inquiries = await getBuyByUser(userId);
+
+    res.status(200).json({
+      status: "success",
+      data: inquiries,
+    });
+  } catch (err) {
+    console.error("Error fetching inquiries:", err);
+    res.status(500).json({
+      status: "error",
+      message: "Internal server error.",
+    });
+  }
+};
+const getUserBnpl = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const inquiries = await getBnplByUser(userId);
 
     res.status(200).json({
       status: "success",
@@ -1479,6 +1560,7 @@ module.exports = {
   createGoal,
   createCredit,
   createDefi,
+  createBnpl,
   createEd,
   createExpense,
   createInquiry,
@@ -1489,6 +1571,7 @@ module.exports = {
   getUserBudget,
   getUserInquiry,
   getUserLoan,
+  getUserBnpl,
   getUserCredit,
   getUserEd,
   getUserExpense,

@@ -8,6 +8,7 @@ const {
   getUserEd,
   getUserAnalysis,
   getUserBudget,
+  getUserBnpl,
   getUserBusiness,
   getUserInvestment,
   getUserBuy,
@@ -32,6 +33,8 @@ const {
   createDefi,
   createCredit,
   createBudget,
+  createLoan,
+  createBnpl,
 } = require("../controller/aiController");
 const router = express.Router();
 const { getClientIp } = require("../middlewares/ipgetter");
@@ -138,10 +141,22 @@ router.post(
   createInquiry
 );
 router.post(
+  "/create-bnpl",
+  verify,
+  upload.single("supportingFile"),
+  createBnpl
+);
+router.post(
   "/create-budget",
   verify,
   upload.single("supportingFile"),
   createBudget
+);
+router.post(
+  "/create-loan",
+  verify,
+  upload.single("supportingFile"),
+  createLoan
 );
 router.post("/create-ed", verify, upload.single("supportingFile"), createEd);
 router.post(
@@ -179,6 +194,7 @@ router.get("/user-defi", verify, getUserDefi);
 router.get("/user-ed", verify, getUserEd);
 router.get("/user-expense", verify, getUserExpense);
 router.get("/user-goal", verify, getUserGoal);
+router.get("/user-bnpl", verify, getUserBnpl);
 router.get("/user-investment", verify, getUserInvestment);
 router.get("/user-inquiry", verify, getUserInquiry);
 router.get("/user-loan", verify, getUserLoan);
