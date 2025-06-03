@@ -14,6 +14,7 @@ const {
 
   forgotPassword,
   getProfileByUserId,
+  updateUserProfile,
 } = require("../controller/authController");
 const verify = require("../middlewares/verifyToken");
 const passport = require("passport");
@@ -82,6 +83,8 @@ router.get(
     );
   }
 );
+router.put("/profile/:id", updateUserProfile);
+
 router.delete("/delete-account", verify, deleteAccount);
 
 module.exports = router;
