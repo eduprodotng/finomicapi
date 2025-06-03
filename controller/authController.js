@@ -63,20 +63,70 @@ const registerUser = async (req, res) => {
     });
   }
 };
+// const updateUserProfile = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const { fullname, email } = req.body;
+
+//     // Optional: sanitize inputs
+//     const updatedData = {};
+//     if (fullname) updatedData.fullname = fullname.trim();
+//     if (email) updatedData.email = email.trim().toLowerCase();
+
+//     const updatedUser = await User.findByIdAndUpdate(
+//       id,
+//       { $set: updatedData },
+//       { new: true } // return updated document
+//     );
+
+//     if (!updatedUser) {
+//       return res.status(404).json({
+//         status: "error",
+//         message: "User not found.",
+//       });
+//     }
+
+//     res.status(200).json({
+//       status: "success",
+//       message: "Profile updated successfully.",
+//       data: updatedUser,
+//     });
+//   } catch (error) {
+//     console.error("Update Profile Error:", error);
+//     res.status(500).json({
+//       status: "error",
+//       message: "Something went wrong.",
+//     });
+//   }
+// };
+
 const updateUserProfile = async (req, res) => {
   try {
     const { id } = req.params;
-    const { fullname, email } = req.body;
+    const { fullname, email, password, confirmPassword } = req.body;
 
-    // Optional: sanitize inputs
     const updatedData = {};
     if (fullname) updatedData.fullname = fullname.trim();
     if (email) updatedData.email = email.trim().toLowerCase();
 
+    // Handle password update
+    if (password || confirmPassword) {
+      if (!password || !confirmPassword || password !== confirmPassword) {
+        return res.status(400).json({
+          status: "error",
+          message: "Passwords must match and not be empty.",
+        });
+      }
+
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+      updatedData.password = hashedPassword;
+    }
+
     const updatedUser = await User.findByIdAndUpdate(
       id,
       { $set: updatedData },
-      { new: true } // return updated document
+      { new: true }
     );
 
     if (!updatedUser) {
