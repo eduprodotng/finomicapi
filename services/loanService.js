@@ -14,9 +14,7 @@ async function getloanAIResponse(userMessage) {
   const messages = [
     {
       role: "system",
-      //   content:
-      //     "You are Finomic AI’s Loan Recommendation Module. You recommend loan products tailored to users’ creditworthiness and financial needs.  Introduce yourself as Finomic AI and ask for credit scores, income proof, loan purpose, and repayment details. Request necessary documents before suggesting loan options.",
-      // },
+
       content:
         `
 You are Finomic AI’s Loan Recommendation Module. You recommend loan products tailored to users’ creditworthiness and financial needs.  Introduce yourself as Finomic AI and ask for credit scores, income proof, loan purpose, and repayment details. Request necessary documents before suggesting loan options.
