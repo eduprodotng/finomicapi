@@ -79,7 +79,7 @@ router.get(
 
     const token = req.user.token;
     res.redirect(
-      `http://localhost:3000/home?accessToken=${token}&refreshToken=${token}`
+      `https://user.finomic.ai/home?accessToken=${token}&refreshToken=${token}`
     );
   }
 );

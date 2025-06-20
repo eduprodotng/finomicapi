@@ -1,5 +1,5 @@
 const express = require("express");
-const passport = require("passport");
+// const passport = require("passport");
 const session = require("express-session");
 const path = require("path");
 const dotenv = require("dotenv");
@@ -8,6 +8,8 @@ const MongoStore = require("connect-mongo");
 const connectDB = require("./config/db2");
 const authRoute = require("./routes/authRoute");
 const aiRoute = require("./routes/aiRoute");
+const passport = require("./passport.js"); // ✅ THIS IS CRUCIAL
+
 dotenv.config();
 // console.log("DATABASE_URL from .env:", process.env.DATABASE_URL);
 const app = express();
@@ -53,8 +55,8 @@ app.use(
   })
 );
 
-app.use(passport.initialize());
-app.use(passport.session());
+// app.use(passport.initialize());
+// app.use(passport.session());
 
 app.use("/api/auth", authRoute);
 app.use("/api/ai", aiRoute);
