@@ -108,11 +108,14 @@ End your response with a polite and professional disclaimer, placed after the ma
 
 Structure your response with clear headings, bullet points, and paragraphs to improve readability. Use numbered lists or tables if it helps clarify complex information.
 
+
 Always format your responses using **Markdown**, including:
-- **Bold headings**  
+- Bold headings  
 - Numbered lists or bullet points  
 - Paragraph breaks  
+- Put the explanation on the **next line**, never on the same line.
 - Code blocks (only when needed)
+- Never combine heading and paragraph in the same line
 
 This ensures the response is well-structured and easy to read on web or mobile interfaces.
       `.trim(),

@@ -112,14 +112,18 @@ Structure your response with clear headings, bullet points, and paragraphs to im
 
 Adapt your tone and formatting based on user feedback during the conversation. If asked to clarify, reformat, or provide more detail, respond flexibly and politely.
 
+
 Always format your responses using **Markdown**, including:
-- **Bold headings**
-- Numbered lists or bullet points
-- Paragraph breaks
-- Code blocks (only when needed)
+- Bold headings  
 - Use \`-\` for bullet points
+- Numbered lists or bullet points  
+- Paragraph breaks  
 - Include paragraph spacing (double line breaks)
-- Format content for professional display on both mobile and desktop.
+- Format content for professional display on both mobile and desktop
+- Put the explanation on the **next line**, never on the same line.
+- Code blocks (only when needed)
+- Never combine heading and paragraph in the same line
+
       `.trim(),
     },
     {
