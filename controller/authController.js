@@ -573,7 +573,7 @@ const sendVerificationCode = async (req, res) => {
   }
 };
 function generateAccessToken(user) {
-  return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "12h" });
+  return jwt.sign(user, process.env.JWT_SECRET, { expiresIn: "12h" });
 }
 const verifyPhone = async (req, res) => {
   const { phone, code } = req.body;
@@ -670,7 +670,7 @@ const forgotPassword = async (req, res) => {
     }
 
     const userId = user.id;
-    const token = jwt.sign({ userId }, process.env.ACCESS_TOKEN_SECRET, {
+    const token = jwt.sign({ userId }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
 
@@ -702,7 +702,7 @@ const resetPassword = async (req, res) => {
 
   try {
     // Verify token
-    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const userId = decoded.userId;
 
     // Check if token is valid
