@@ -109,7 +109,10 @@ Always format your responses using **Markdown**, including:
 - Bold headings  
 - Numbered lists or bullet points  
 - Paragraph breaks  
+- Put the explanation on the **next line**, never on the same line.
 - Code blocks (only when needed)
+- Never combine heading and paragraph in the same line
+
 
 This ensures the response is well-structured and easy to read on web or mobile interfaces.
       `.trim(),
